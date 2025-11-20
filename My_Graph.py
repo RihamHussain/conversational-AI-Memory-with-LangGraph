@@ -40,6 +40,7 @@ class Graph(StateGraph):
         self.compiled_graph = self.compile(checkpointer=self.checkpointer)
         return self.compiled_graph
 
+    
     def test_graph(self):
         """
         Runs one conversation and prints the latest StateSnapshot.
@@ -70,3 +71,27 @@ class Graph(StateGraph):
         print("-----------------------------------------------\n")
 
         return final_state
+
+def build_long_term_graph():
+    # Create persistent SQLite-backed memory
+        checkpointer = SqliteSaver.from_file("long_memory.db")
+
+        graph = StateGraph(State)
+        node_graph = NodeGraph()
+
+        # Register nodes
+        graph.add_node("ask_question", node_graph.ask_question)
+        graph.add_node("chatbot", node_graph.chatbot)
+        graph.add_node("ask_another_question", node_graph.ask_another_question)
+
+        # Connect nodes
+        graph.add_edge(START, "ask_question")
+        graph.add_edge("ask_question", "chatbot")
+        graph.add_edge("chatbot", "ask_another_question")
+        graph.add_conditional_edges(
+            source="ask_another_question",
+            path=node_graph.routing_function,
+        )
+
+        # Compile with persistent checkpointer
+        return graph.compile(checkpointer=checkpointer)

@@ -44,7 +44,7 @@ The project is intentionally simple and focuses on **core concepts** rather than
 ```
 
 .
-├── main.py               # Entry point to run the graph
+├── main-short.py              # Entry point to run the graph
 ├── My_Graph.py           # Graph definition, node linking, and compilation
 ├── Nodes.py              # Custom node logic (Ask Question, Chatbot)
 ├── State.py              # Shared TypedDict state object
@@ -86,7 +86,7 @@ ollama pull deepseek-r1:8b
 ### 4️⃣ Run the project
 
 ```bash
-python main.py
+python main-short.py
 ```
 
 ---
@@ -139,6 +139,30 @@ What is your question?
 -------> ENTERING chatbot:
 Artificial intelligence (AI) refers to...
 ```
+
+---
+
+Here is the exact text you can add to your **README.md** under a new section titled **Short-Term Memory (Not Long-Term Memory)**:
+
+---
+
+## 🧠 Short-Term Memory (Not Long-Term Memory)
+
+This project implements **short-term conversational memory**, not long-term persistent memory.
+
+**Short-term memory definition:**
+
+* The system remembers earlier messages **only during a single run** of the program.
+* It uses LangGraph’s **InMemorySaver** checkpointer to store state transitions inside the current execution.
+* Once the program ends (i.e., after running `python main-short.py`), all memory is cleared.
+* When you start a new run, the chatbot starts fresh and does **not** recall anything from previous runs.
+
+**What this means in practice:**
+
+* Within the same session, the assistant can remember details like your name, previous questions, and conversation flow.
+* On the next run, it will not remember them because no persistent storage is used.
+
+This is the intended behavior of **short-term memory** and should not be confused with **long-term memory**, which would require saving summaries or states to disk for reuse across sessions.
 
 ---
 
