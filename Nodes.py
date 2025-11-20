@@ -7,70 +7,70 @@ from Summarizer import summarize_messages
 
 class NodeGraph:
 
-    # -------------------------- Node 1 --------------------------
+    # -------------------------- NODE 1 --------------------------
     def ask_question(self, state: State) -> State:
         print("\n-------> ENTERING ask_question:")
         print("What is your question?")
 
-        user_msg = HumanMessage(input())
-        return State(messages=[user_msg], summary=state.get("summary", ""))
+        user_input = input()
 
-    # -------------------------- Node 2 --------------------------
+        # Append user message to history
+        messages = list(state.get("messages", []))
+        messages.append(HumanMessage(content=user_input))
+
+        return State(messages=messages, summary=state.get("summary", ""))
+
+    # -------------------------- NODE 2 --------------------------
     def chatbot(self, state: State) -> State:
         print("\n-------> ENTERING chatbot:")
 
-        summary = state.get("summary", "")
         messages = list(state["messages"])
-        user_message = messages[-1].content
+        summary = state.get("summary", "")
 
-        # Build DeepSeek context (SAFE: no f-strings)
-        recent_messages_text = ""
+        recent_text = ""
         for m in messages:
             role = "User" if m.type == "human" else "Assistant"
-            recent_messages_text += "{}: {}\n".format(role, m.content)
+            recent_text += "{}: {}\n".format(role, m.content)
 
         context = (
             "Conversation summary:\n{}\n\n"
-            "Recent messages:\n{}\n\n"
-            "User question: {}\n\n"
-            "Using the summary as memory, answer the user.\n"
-        ).format(summary, recent_messages_text, user_message)
+            "Recent conversation:\n{}\n\n"
+            "Using the summary as memory, answer the last user question.\n"
+        ).format(summary, recent_text)
 
-        # Call Ollama DeepSeek
-        resp = requests.post(
+        response = requests.post(
             "http://127.0.0.1:11434/api/generate",
-            json={
-                "model": "deepseek-r1:8b",
-                "prompt": context,
-                "stream": False,
-            },
+            json={"model": "deepseek-r1:8b", "prompt": context, "stream": False},
             timeout=120,
         )
 
-        answer = resp.json().get("response", "").strip()
+        answer = response.json().get("response", "").strip()
         print(answer)
 
-        # Add assistant reply to message list
+        # Append AI message to history
         messages.append(AIMessage(content=answer))
 
-        # ------------------ MEMORY LOGIC ------------------
+        # ---- APPLY MEMORY / SUMMARY LOGIC ----
         if len(messages) > 6:
-            print("\n[Memory is long → summarizing...]\n")
+            print("\n[Summarizing memory...]\n")
             new_summary = summarize_messages(messages, summary)
             summary = new_summary
-            messages = messages[-3:]  # keep last 3 messages only
+            messages = messages[-3:]  # keep last 3 messages after summarizing
 
         return State(messages=messages, summary=summary)
 
-    # -------------------------- Node 3 --------------------------
+    # -------------------------- NODE 3 --------------------------
     def ask_another_question(self, state: State) -> State:
         print("\n-------> ENTERING ask_another_question:")
         print("Would you like to ask one more question (yes/no)?")
-        user_msg = HumanMessage(input())
-        return State(messages=[user_msg], summary=state["summary"])
 
-    # -------------------------- Routing --------------------------
+        answer = input()
+        messages = list(state["messages"])
+        messages.append(HumanMessage(content=answer))
+
+        return State(messages=messages, summary=state["summary"])
+
+    # -------------------------- ROUTER --------------------------
     def routing_function(self, state: State) -> Literal["ask_question", "__end__"]:
-        if state["messages"][0].content.lower().strip() == "yes":
-            return "ask_question"
-        return "__end__"
+        last_msg = state["messages"][-1].content.lower().strip()
+        return "ask_question" if last_msg == "yes" else "__end__"
