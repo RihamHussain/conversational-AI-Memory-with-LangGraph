@@ -2,58 +2,75 @@ import requests
 from langchain_core.messages import HumanMessage, AIMessage
 from typing import Literal
 from State import State
+from Summarizer import summarize_messages
 
 
 class NodeGraph:
+
     # -------------------------- Node 1 --------------------------
     def ask_question(self, state: State) -> State:
-        print(f"\n-------> ENTERING ask_question:")
+        print("\n-------> ENTERING ask_question:")
         print("What is your question?")
 
-        return State(messages=[HumanMessage(input())])
+        user_msg = HumanMessage(input())
+        return State(messages=[user_msg], summary=state.get("summary", ""))
 
     # -------------------------- Node 2 --------------------------
     def chatbot(self, state: State) -> State:
         print("\n-------> ENTERING chatbot:")
 
-        # Take the last user message as the prompt
-        prompt = state["messages"][0].content
+        summary = state.get("summary", "")
+        messages = list(state["messages"])
+        user_message = messages[-1].content
 
-        # Call local Ollama server with DeepSeek-R1
-        try:
-            response = requests.post(
-                "http://127.0.0.1:11434/api/generate",
-                json={
-                    "model": "deepseek-r1:8b",
-                    "prompt": prompt,
-                    "stream": False,
-                },
-                timeout=120,
-            )
-            response.raise_for_status()
-            data = response.json()
-            # Ollama /api/generate returns the text in the "response" field
-            answer = (data.get("response") or "").strip()
+        # Build DeepSeek context (SAFE: no f-strings)
+        recent_messages_text = ""
+        for m in messages:
+            role = "User" if m.type == "human" else "Assistant"
+            recent_messages_text += "{}: {}\n".format(role, m.content)
 
-            if not answer:
-                answer = "[Ollama returned an empty response.]"
+        context = (
+            "Conversation summary:\n{}\n\n"
+            "Recent messages:\n{}\n\n"
+            "User question: {}\n\n"
+            "Using the summary as memory, answer the user.\n"
+        ).format(summary, recent_messages_text, user_message)
 
-        except Exception as e:
-            answer = f"[Error talking to Ollama on 127.0.0.1:11434 with model 'deepseek-r1:8b': {e}]"
+        # Call Ollama DeepSeek
+        resp = requests.post(
+            "http://127.0.0.1:11434/api/generate",
+            json={
+                "model": "deepseek-r1:8b",
+                "prompt": context,
+                "stream": False,
+            },
+            timeout=120,
+        )
 
+        answer = resp.json().get("response", "").strip()
         print(answer)
-        return State(messages=[AIMessage(content=answer)])
+
+        # Add assistant reply to message list
+        messages.append(AIMessage(content=answer))
+
+        # ------------------ MEMORY LOGIC ------------------
+        if len(messages) > 6:
+            print("\n[Memory is long → summarizing...]\n")
+            new_summary = summarize_messages(messages, summary)
+            summary = new_summary
+            messages = messages[-3:]  # keep last 3 messages only
+
+        return State(messages=messages, summary=summary)
 
     # -------------------------- Node 3 --------------------------
     def ask_another_question(self, state: State) -> State:
-        print(f"\n-------> ENTERING ask_another_question:")
+        print("\n-------> ENTERING ask_another_question:")
         print("Would you like to ask one more question (yes/no)?")
+        user_msg = HumanMessage(input())
+        return State(messages=[user_msg], summary=state["summary"])
 
-        return State(messages=[HumanMessage(input())])
-
-    # Define Routing Function:
+    # -------------------------- Routing --------------------------
     def routing_function(self, state: State) -> Literal["ask_question", "__end__"]:
         if state["messages"][0].content.lower().strip() == "yes":
             return "ask_question"
-        else:
-            return "__end__"
+        return "__end__"

@@ -4,3 +4,4 @@ from collections.abc import Sequence
 
 class State(TypedDict):
     messages: Sequence[BaseMessage]
+    summary: str  

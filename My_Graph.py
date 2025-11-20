@@ -26,4 +26,4 @@ class Graph(StateGraph):
         return self.compiled_graph
     
     def test_graph(self):
-        self.compiled_graph.invoke(State(messages = []))
+        self.compiled_graph.invoke(State(messages=[], summary=""))
