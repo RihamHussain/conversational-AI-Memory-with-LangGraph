@@ -1,0 +1,111 @@
+# =========================================
+#  Python
+# =========================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.pkl
+*.so
+*.dylib
+
+# Byte-compiled / optimized / DLL files
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+env/
+venv/
+.venv/
+*.swp
+
+# =========================================
+#  Conda environments
+# =========================================
+*.conda
+*.yaml
+*.yml
+
+# DO NOT TRACK conda environment folders
+# (Your env is outside project so safe)
+# but ignore any accidental ones:
+*/conda-meta/
+*/pkgs/
+
+# =========================================
+#  Environment & Secrets
+# =========================================
+.env
+.env.*
+*.secret
+*.key
+
+# =========================================
+#  VS Code
+# =========================================
+.vscode/
+*.code-workspace
+
+# =========================================
+#  Jupyter Notebook
+# =========================================
+.ipynb_checkpoints/
+*.ipynb_checkpoint
+.jupyter/
+
+# Do not ignore actual notebooks, you want to track them
+# so no *.ipynb exclusion here
+
+# =========================================
+#  OS-specific files
+# =========================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================================
+#  Logs
+# =========================================
+*.log
+logs/
+
+# =========================================
+#  Build & Distribution
+# =========================================
+build/
+dist/
+*.egg-info/
+.eggs/
+*.whl
+
+# =========================================
+#  Cache
+# =========================================
+.cache/
+*.cache
+.mypy_cache/
+.pytest_cache/
+__pytest_cache__/
+
+# =========================================
+#  Project-Specific
+# =========================================
+
+# Ignore intermediate LangGraph compiled files
+*.graph
+
+# Ignore any temporary model outputs
+outputs/
+generated/
+temp/
+tmp/
+
+# Ignore Python notebooks' auto-saves
+*.autosave
+
+# Ignore Google Gemini metadata (if created)
+genai.json
+
+/*.ipynb 

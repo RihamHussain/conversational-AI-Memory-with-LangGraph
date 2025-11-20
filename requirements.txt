@@ -1,0 +1,13 @@
+langchain==0.3.25
+langchain_core==0.3.60
+langchain_text_splitters==0.3.8
+langsmith==0.3.4
+python-dotenv
+mypy-ipython==20.8.0
+grandalf==0.8
+ipykernel==6.29.5
+google-generativeai
+langchain-google-genai
+langgraph
+google-generativeai 
+langchain-google-genai
