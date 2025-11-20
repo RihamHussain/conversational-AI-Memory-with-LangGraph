@@ -31,7 +31,7 @@ This project demonstrates:
 - How to define a `State` in LangGraph  
 - How to create custom graph nodes (e.g., chatbot, question prompt)  
 - How to compile and run a LangGraph workflow  
-- How to use Google Gemini's FREE API instead of paid OpenAI calls  
+- How to use a **local Ollama model (DeepSeek-R1)** instead of a cloud LLM API  
 - How to integrate an LLM into a graph-based workflow  
 - How to run the graph interactively from a Python script  
 
@@ -72,12 +72,12 @@ conda activate langgraph_env
 pip install -r requirements.txt
 ```
 
-### 3️⃣ Add your API key to `.env`
+### 3️⃣Install Ollama and DeepSeek-R1 locally
 
-Create a file named `.env`:
+Pull the DeepSeek-R1 model:
 
 ```
-GEMINI_API_KEY=YOUR_KEY_HERE
+ollama pull deepseek-r1:8b
 ```
 
 > ❗ Never commit `.env` to GitHub.
@@ -128,23 +128,6 @@ graph.add_node(...)
 graph.add_edge(...)
 ```
 
----
-
-## ☁ Google Gemini Integration (Free API)
-
-This project uses:
-
-* `google-generativeai`
-* Model: `gemini-1.5-flash-latest`
-
-The Gemini client is configured like this:
-
-```python
-import google.generativeai as genai
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-```
-
----
 
 ## 🧪 Example Output
 

@@ -1,44 +1,33 @@
-import google.generativeai as genai
-import os
-from dotenv import load_dotenv
+import requests
+def test_ollama_deepseek():
+    """
+    Simple connectivity test for local Ollama + DeepSeek-R1:8b.
+    """
+    print("Testing connection to Ollama (DeepSeek-R1:8b)...")
 
-# Load environment variables from .env file
-load_dotenv()
-print("Attempting to load GEMINI_API_KEY from .env file...")
-
-try:
-    # Get the API key from environment variables
-    api_key = os.getenv("GEMINI_API_KEY")
-
-    if not api_key:
+    try:
+        resp = requests.post(
+            "http://127.0.0.1:11434/api/generate",
+            json={
+                "model": "deepseek-r1:8b",
+                "prompt": "Hello from the LangGraph test script. Please reply very briefly.",
+                "stream": False,
+            },
+            timeout=60,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        answer = (data.get("response") or "").strip()
+        print("\n--- SUCCESS ---")
+        print("Ollama is running and DeepSeek-R1 responded with:\n")
+        print(answer)
+        print("\n-----------------\n")
+    except Exception as e:
         print("\n--- ERROR ---")
-        print("GEMINI_API_KEY was not found in your environment.")
-        print("Please ensure your .env file is in the correct directory and is formatted correctly.")
-        print("----------------\n")
-    else:
-        # Configure the library with your API key
-        genai.configure(api_key=api_key)
-        print("API key loaded and configured successfully.")
-        
-        print("\nAttempting to list available models...")
-        # List all models that support the 'generateContent' method
-        found_models = False
-        for m in genai.list_models():
-            if 'generateContent' in m.supported_generation_methods:
-                print(f"  - Found available model: {m.name}")
-                found_models = True
-        
-        if found_models:
-            print("\n--- SUCCESS ---")
-            print("Your API key is working correctly!")
-            print("-----------------\n")
-        else:
-            print("\n--- ERROR ---")
-            print("API key is valid, but no models supporting 'generateContent' were found.")
-            print("-----------------\n")
+        print("Failed to connect to Ollama / DeepSeek-R1.")
+        print(f"Details: {e}")
+        print("-----------------\n")
 
 
-except Exception as e:
-    print(f"\n--- AN ERROR OCCURRED ---")
-    print(f"The test failed with the following error: {e}")
-    print("---------------------------\n")
+if __name__ == "__main__":
+    test_ollama_deepseek()
